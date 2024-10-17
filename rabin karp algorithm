@@ -1,0 +1,56 @@
+vector<int> search(string pattern, string text) {
+    int len1 = pattern.length();
+    int len2 = text.length();
+    long long res = 0;
+    vector<int> ans;
+    unordered_map<char, int> m;
+
+    // Map characters 'a' to 'z' to unique values
+    int s = 1;
+    for (char c = 'a'; c <= 'z'; c++) {
+        m[c] = s;
+        s++;
+    }
+
+    // Precompute powers of 2 directly to avoid floating-point errors
+    vector<long long> powers(len1);
+    powers[0] = 1;  // 2^0 = 1
+    for (int k = 1; k < len1; k++) {
+        powers[k] = powers[k - 1] * 2;  // 2^k = 2 * 2^(k-1)
+    }
+
+    // Compute the hash of the pattern
+    for (int k = 0; k < len1; k++) {
+        res += m[pattern[k]] * powers[k];
+    }
+
+    int i = 0, j = 0;
+    long long hashval = 0;
+
+    // Compute the hash for the first len1 characters of the text
+    while (j < len1) {
+        hashval += m[text[j]] * powers[j];
+        j++;
+    }
+
+    // Check if the first window matches the pattern
+    if (hashval == res) {
+        ans.push_back(i + 1);  // Push 1-based index
+    }
+
+    // Process the rest of the text using the sliding window
+    while (j < len2) {
+        // Slide the window: remove the contribution of text[i] and add text[j]
+        hashval = (hashval - m[text[i]]) / 2 + m[text[j]] * powers[len1 - 1];
+
+        i++;
+        j++;
+
+        // Check if the current window matches the pattern
+        if (hashval == res) {
+            ans.push_back(i + 1);  // Push 1-based index
+        }
+    }
+
+    return ans;
+}
